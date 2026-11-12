@@ -53,13 +53,14 @@
   .brand { font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-size: 1.15rem; letter-spacing: .01em; }
   .brand small { display: block; font-family: "Figtree", system-ui, sans-serif; font-size: .78rem; color: var(--ink-soft); letter-spacing: 0; margin-top: .15rem; }
   .langs { display: flex; gap: .25rem; }
-  button, .btn {
-    font: inherit; font-size: .88rem; color: var(--ink); text-decoration: none;
+  button {
+    font: inherit; font-size: .88rem; color: var(--ink);
     background: var(--control); border: 0; border-radius: 999px;
     padding: .5rem .9rem; cursor: pointer; transition: background .15s;
   }
-  button:hover, .btn:hover { background: var(--control-hover); }
-  button:focus-visible, .btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  button:hover { background: var(--control-hover); }
+  button:disabled { opacity: .5; cursor: progress; }
+  button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
   .langs button[aria-pressed="true"] { background: var(--ink); color: var(--backdrop); }
   main { position: relative; min-height: 0; display: grid; place-items: center; padding: 0 clamp(.5rem, 3vw, 3rem); }
   #book { filter: drop-shadow(var(--shadow)); }
@@ -76,7 +77,7 @@
   @media (max-width: 560px) {
     .brand small { display: none; }
     header { padding-bottom: .4rem; }
-    button, .btn { padding: .45rem .7rem; }
+    button { padding: .45rem .7rem; }
     #fs { display: none; }
   }
 </style>
@@ -103,7 +104,7 @@
     <button id="next" aria-label="Volgende pagina">›</button>
   </div>
   <div class="actions">
-    <a class="btn" id="download" href="#" download>Download PDF</a>
+    <button id="download">Download PDF</button>
     <button id="fs">Volledig scherm</button>
   </div>
 </footer>
@@ -111,17 +112,69 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
+// Each language is a manifest listing the PDF's parts (GitHub stores large files in pieces).
 const FILES = {
-  nl: 'pdf/Hospitality_NL.pdf',
-  fr: 'pdf/Hospitality_FR.pdf',
-  en: 'pdf/Hospitality_EN.pdf',
-  de: 'pdf/Hospitality_DE.pdf'
+  nl: 'pdf/Hospitality_NL.json',
+  fr: 'pdf/Hospitality_FR.json',
+  en: 'pdf/Hospitality_EN.json',
+  de: 'pdf/Hospitality_DE.json'
 };
+const PDF_NAMES = { nl: 'Hospitality_NL.pdf', fr: 'Hospitality_FR.pdf', en: 'Hospitality_EN.pdf', de: 'Hospitality_DE.pdf' };
+const partCache = new Map();
+
+async function loadManifest(l) {
+  const m = await (await fetch(FILES[l], { cache: 'no-cache' })).json();
+  let off = 0;
+  m.parts = m.parts.map(p => { const o = { ...p, start: off }; off += p.size; return o; });
+  return m;
+}
+
+async function readRange(parts, begin, end) {
+  const out = new Uint8Array(end - begin);
+  await Promise.all(parts.map(async p => {
+    const s = Math.max(begin, p.start), e = Math.min(end, p.start + p.size);
+    if (s >= e) return;
+    let data;
+    if (partCache.has(p.path)) {
+      data = partCache.get(p.path).subarray(s - p.start, e - p.start);
+    } else {
+      const res = await fetch(p.path, { headers: { Range: `bytes=${s - p.start}-${e - p.start - 1}` } });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + p.path);
+      data = new Uint8Array(await res.arrayBuffer());
+      if (res.status === 200) { partCache.set(p.path, data); data = data.subarray(s - p.start, e - p.start); }
+    }
+    out.set(data, s - begin);
+  }));
+  return out;
+}
+
+async function openPdf(l) {
+  const m = await loadManifest(l);
+  const transport = new pdfjsLib.PDFDataRangeTransport(m.size, null);
+  transport.requestDataRange = (begin, end) => {
+    readRange(m.parts, begin, end).then(d => transport.onDataRange(begin, d)).catch(e => console.error(e));
+  };
+  return pdfjsLib.getDocument({ range: transport, rangeChunkSize: 262144, disableAutoFetch: true, disableStream: true }).promise;
+}
+
+async function downloadPdf() {
+  const btn = document.getElementById('download');
+  btn.disabled = true;
+  try {
+    const m = await loadManifest(lang);
+    const blobs = await Promise.all(m.parts.map(p => fetch(p.path).then(r => r.blob())));
+    const url = URL.createObjectURL(new Blob(blobs, { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = PDF_NAMES[lang]; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } finally { btn.disabled = false; }
+}
+
 const UI = {
-  nl: { sub: 'Hospitality magazine, herfst/winter 26/27', load: 'Magazine laden…', err: 'Het magazine kon niet geladen worden. Probeer de pagina te vernieuwen of download de PDF.', page: 'Pagina', of: 'van', dl: 'Download PDF', fs: 'Volledig scherm', prev: 'Vorige pagina', next: 'Volgende pagina' },
-  fr: { sub: 'Magazine Hospitality, automne/hiver 26/27', load: 'Chargement du magazine…', err: 'Le magazine n’a pas pu être chargé. Actualisez la page ou téléchargez le PDF.', page: 'Page', of: 'sur', dl: 'Télécharger le PDF', fs: 'Plein écran', prev: 'Page précédente', next: 'Page suivante' },
-  en: { sub: 'Hospitality magazine, autumn/winter 26/27', load: 'Loading magazine…', err: 'The magazine couldn’t be loaded. Refresh the page or download the PDF.', page: 'Page', of: 'of', dl: 'Download PDF', fs: 'Full screen', prev: 'Previous page', next: 'Next page' },
-  de: { sub: 'Hospitality-Magazin, Herbst/Winter 26/27', load: 'Magazin wird geladen…', err: 'Das Magazin konnte nicht geladen werden. Seite neu laden oder PDF herunterladen.', page: 'Seite', of: 'von', dl: 'PDF herunterladen', fs: 'Vollbild', prev: 'Vorherige Seite', next: 'Nächste Seite' }
+  nl: { sub: 'Hospitality magazine, herfst/winter 26/27', load: 'Magazine laden…', err: 'Het magazine kon niet geladen worden. Probeer de pagina te vernieuwen.', page: 'Pagina', of: 'van', dl: 'Download PDF', fs: 'Volledig scherm', prev: 'Vorige pagina', next: 'Volgende pagina' },
+  fr: { sub: 'Magazine Hospitality, automne/hiver 26/27', load: 'Chargement du magazine…', err: 'Le magazine n’a pas pu être chargé. Actualisez la page.', page: 'Page', of: 'sur', dl: 'Télécharger le PDF', fs: 'Plein écran', prev: 'Page précédente', next: 'Page suivante' },
+  en: { sub: 'Hospitality magazine, autumn/winter 26/27', load: 'Loading magazine…', err: 'The magazine couldn’t be loaded. Refresh the page.', page: 'Page', of: 'of', dl: 'Download PDF', fs: 'Full screen', prev: 'Previous page', next: 'Next page' },
+  de: { sub: 'Hospitality-Magazin, Herbst/Winter 26/27', load: 'Magazin wird geladen…', err: 'Das Magazin konnte nicht geladen werden. Seite neu laden.', page: 'Seite', of: 'von', dl: 'PDF herunterladen', fs: 'Vollbild', prev: 'Vorherige Seite', next: 'Nächste Seite' }
 };
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -143,7 +196,6 @@ function setUi(l) {
   document.documentElement.lang = l;
   document.getElementById('subtitle').textContent = t.sub;
   document.getElementById('download').textContent = t.dl;
-  document.getElementById('download').href = FILES[l];
   document.getElementById('fs').textContent = t.fs;
   document.getElementById('prev').setAttribute('aria-label', t.prev);
   document.getElementById('next').setAttribute('aria-label', t.next);
@@ -214,7 +266,7 @@ async function load(l) {
   status.textContent = UI[l].load; status.hidden = false;
 
   try {
-    const doc = await pdfjsLib.getDocument({ url: FILES[l], rangeChunkSize: 262144, disableAutoFetch: true }).promise;
+    const doc = await openPdf(l);
     if (token !== loadToken) return;
     pdf = doc;
     const first = await pdf.getPage(1);
@@ -263,6 +315,7 @@ document.querySelectorAll('.langs button').forEach(b => b.addEventListener('clic
   history.replaceState(null, '', `${location.pathname}?lang=${b.dataset.lang}`);
   load(b.dataset.lang);
 }));
+document.getElementById('download').addEventListener('click', downloadPdf);
 document.getElementById('prev').addEventListener('click', () => flip && flip.flipPrev());
 document.getElementById('next').addEventListener('click', () => flip && flip.flipNext());
 document.addEventListener('keydown', e => {
