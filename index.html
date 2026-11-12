@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hospitality Magazine Herfst/Winter 26/27 | Fine Dining & Living</title>
+<meta name="description" content="Blader door het Hospitality magazine van Fine Dining & Living: horecabestendig servies voor elke gelegenheid.">
+<meta property="og:title" content="Hospitality Magazine Herfst/Winter 26/27">
+<meta property="og:description" content="Van fine dining tot strandclub. Servies ontworpen voor elke gelegenheid.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --backdrop: #DDE1DC;
+    --backdrop-deep: #C9CFC9;
+    --ink: #1F2A28;
+    --ink-soft: #55625F;
+    --brass: #9C7A45;
+    --control: rgba(255,255,255,.72);
+    --control-hover: #fff;
+    --shadow: 0 30px 60px -20px rgba(31,42,40,.45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --backdrop: #1E2725;
+      --backdrop-deep: #141B1A;
+      --ink: #E9ECE8;
+      --ink-soft: #A3AEAB;
+      --brass: #C9A56C;
+      --control: rgba(255,255,255,.08);
+      --control-hover: rgba(255,255,255,.16);
+      --shadow: 0 30px 70px -20px rgba(0,0,0,.8);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: radial-gradient(ellipse at 50% 40%, var(--backdrop) 0%, var(--backdrop-deep) 100%);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    overflow: hidden;
+  }
+  header, footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: .9rem clamp(1rem, 3vw, 2rem);
+  }
+  .brand { font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-size: 1.15rem; letter-spacing: .01em; }
+  .brand small { display: block; font-family: "Figtree", system-ui, sans-serif; font-size: .78rem; color: var(--ink-soft); letter-spacing: 0; margin-top: .15rem; }
+  .langs { display: flex; gap: .25rem; }
+  button, .btn {
+    font: inherit; font-size: .88rem; color: var(--ink); text-decoration: none;
+    background: var(--control); border: 0; border-radius: 999px;
+    padding: .5rem .9rem; cursor: pointer; transition: background .15s;
+  }
+  button:hover, .btn:hover { background: var(--control-hover); }
+  button:focus-visible, .btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .langs button[aria-pressed="true"] { background: var(--ink); color: var(--backdrop); }
+  main { position: relative; min-height: 0; display: grid; place-items: center; padding: 0 clamp(.5rem, 3vw, 3rem); }
+  #book { filter: drop-shadow(var(--shadow)); }
+  .page { background: #fff; overflow: hidden; }
+  .page img { width: 100%; height: 100%; display: block; object-fit: contain; }
+  .page .pending { width: 100%; height: 100%; background: linear-gradient(90deg, #f2f3f1 0%, #e8eae7 50%, #f2f3f1 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .page .pending { animation: none; } }
+  #status { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-soft); font-size: .95rem; text-align: center; padding: 1rem; }
+  #status[hidden] { display: none; }
+  .nav { display: flex; align-items: center; gap: .5rem; }
+  #counter { min-width: 6.5rem; text-align: center; font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: .88rem; }
+  .actions { display: flex; gap: .4rem; }
+  @media (max-width: 560px) {
+    .brand small { display: none; }
+    header { padding-bottom: .4rem; }
+    button, .btn { padding: .45rem .7rem; }
+    #fs { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Fine Dining &amp; Living<small id="subtitle">Hospitality magazine, herfst/winter 26/27</small></div>
+  <nav class="langs" aria-label="Taal">
+    <button data-lang="nl">NL</button>
+    <button data-lang="fr">FR</button>
+    <button data-lang="en">EN</button>
+    <button data-lang="de">DE</button>
+  </nav>
+</header>
+
+<main id="stage">
+  <div id="status">Magazine laden…</div>
+</main>
+
+<footer>
+  <div class="nav">
+    <button id="prev" aria-label="Vorige pagina">‹</button>
+    <span id="counter" aria-live="polite"></span>
+    <button id="next" aria-label="Volgende pagina">›</button>
+  </div>
+  <div class="actions">
+    <a class="btn" id="download" href="#" download>Download PDF</a>
+    <button id="fs">Volledig scherm</button>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<script>
+const FILES = {
+  nl: 'pdf/Hospitality_NL.pdf',
+  fr: 'pdf/Hospitality_FR.pdf',
+  en: 'pdf/Hospitality_EN.pdf',
+  de: 'pdf/Hospitality_DE.pdf'
+};
+const UI = {
+  nl: { sub: 'Hospitality magazine, herfst/winter 26/27', load: 'Magazine laden…', err: 'Het magazine kon niet geladen worden. Probeer de pagina te vernieuwen of download de PDF.', page: 'Pagina', of: 'van', dl: 'Download PDF', fs: 'Volledig scherm', prev: 'Vorige pagina', next: 'Volgende pagina' },
+  fr: { sub: 'Magazine Hospitality, automne/hiver 26/27', load: 'Chargement du magazine…', err: 'Le magazine n’a pas pu être chargé. Actualisez la page ou téléchargez le PDF.', page: 'Page', of: 'sur', dl: 'Télécharger le PDF', fs: 'Plein écran', prev: 'Page précédente', next: 'Page suivante' },
+  en: { sub: 'Hospitality magazine, autumn/winter 26/27', load: 'Loading magazine…', err: 'The magazine couldn’t be loaded. Refresh the page or download the PDF.', page: 'Page', of: 'of', dl: 'Download PDF', fs: 'Full screen', prev: 'Previous page', next: 'Next page' },
+  de: { sub: 'Hospitality-Magazin, Herbst/Winter 26/27', load: 'Magazin wird geladen…', err: 'Das Magazin konnte nicht geladen werden. Seite neu laden oder PDF herunterladen.', page: 'Seite', of: 'von', dl: 'PDF herunterladen', fs: 'Vollbild', prev: 'Vorherige Seite', next: 'Nächste Seite' }
+};
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const stage = document.getElementById('stage');
+const status = document.getElementById('status');
+const counter = document.getElementById('counter');
+let flip = null, pdf = null, pages = [], rendered = new Set(), queue = [], working = false, lang, ratio = 1.414, loadToken = 0;
+
+function pickLang() {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q && FILES[q]) return q;
+  const nav = (navigator.language || 'nl').slice(0, 2).toLowerCase();
+  return FILES[nav] ? nav : 'nl';
+}
+
+function setUi(l) {
+  const t = UI[l];
+  document.documentElement.lang = l;
+  document.getElementById('subtitle').textContent = t.sub;
+  document.getElementById('download').textContent = t.dl;
+  document.getElementById('download').href = FILES[l];
+  document.getElementById('fs').textContent = t.fs;
+  document.getElementById('prev').setAttribute('aria-label', t.prev);
+  document.getElementById('next').setAttribute('aria-label', t.next);
+  document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === l));
+}
+
+function updateCounter() {
+  if (!flip) return;
+  const t = UI[lang], i = flip.getCurrentPageIndex() + 1, n = flip.getPageCount();
+  const portrait = flip.getOrientation() === 'portrait';
+  const label = (!portrait && i > 1 && i < n) ? `${i}–${Math.min(i + 1, n)}` : `${i}`;
+  counter.textContent = `${t.page} ${label} ${t.of} ${n}`;
+}
+
+function fitBook() {
+  const book = document.getElementById('book');
+  if (!book) return;
+  const w = stage.clientWidth - 16, h = stage.clientHeight - 16;
+  const portrait = w < h * 0.9;
+  const spreadW = portrait ? h / ratio : (h / ratio) * 2;
+  book.style.width = Math.min(w, spreadW) + 'px';
+}
+
+async function renderPage(i) {
+  if (rendered.has(i)) return;
+  rendered.add(i);
+  const token = loadToken;
+  const page = await pdf.getPage(i + 1);
+  const base = page.getViewport({ scale: 1 });
+  const targetW = Math.min(1400, Math.round(700 * Math.min(window.devicePixelRatio || 1, 2)));
+  const vp = page.getViewport({ scale: targetW / base.width });
+  const canvas = document.createElement('canvas');
+  canvas.width = vp.width; canvas.height = vp.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+  const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.86));
+  canvas.width = canvas.height = 0;
+  if (token !== loadToken) return;
+  const img = new Image();
+  img.alt = `${UI[lang].page} ${i + 1}`;
+  img.src = URL.createObjectURL(blob);
+  pages[i].replaceChildren(img);
+}
+
+async function pump() {
+  if (working) return;
+  working = true;
+  while (queue.length) {
+    const i = queue.shift();
+    try { await renderPage(i); } catch (e) { console.warn('page', i + 1, e); }
+  }
+  working = false;
+}
+
+function prioritize(center) {
+  const near = [];
+  for (let d = 0; d <= 4; d++) { near.push(center + d); if (d) near.push(center - d); }
+  const valid = near.filter(i => i >= 0 && i < pages.length && !rendered.has(i));
+  queue = [...valid, ...queue.filter(i => !valid.includes(i))];
+  pump();
+}
+
+async function load(l) {
+  lang = l; setUi(l);
+  const token = ++loadToken;
+  if (flip) { try { flip.destroy(); } catch (e) {} flip = null; }
+  document.getElementById('book')?.remove();
+  rendered = new Set(); queue = []; pages = [];
+  status.textContent = UI[l].load; status.hidden = false;
+
+  try {
+    const doc = await pdfjsLib.getDocument({ url: FILES[l], rangeChunkSize: 262144, disableAutoFetch: true }).promise;
+    if (token !== loadToken) return;
+    pdf = doc;
+    const first = await pdf.getPage(1);
+    const v = first.getViewport({ scale: 1 });
+    ratio = v.height / v.width;
+
+    const book = document.createElement('div');
+    book.id = 'book';
+    for (let i = 0; i < pdf.numPages; i++) {
+      const p = document.createElement('div');
+      p.className = 'page';
+      p.innerHTML = '<div class="pending"></div>';
+      pages.push(p); book.appendChild(p);
+    }
+    stage.appendChild(book);
+    fitBook();
+
+    const baseW = 500;
+    flip = new St.PageFlip(book, {
+      width: baseW, height: Math.round(baseW * ratio),
+      size: 'stretch', minWidth: 200, maxWidth: 1600,
+      minHeight: Math.round(200 * ratio), maxHeight: Math.round(1600 * ratio),
+      showCover: true, usePortrait: true, autoSize: true,
+      maxShadowOpacity: 0.4, flippingTime: 700, mobileScrollSupport: false
+    });
+    flip.loadFromHTML(pages);
+    status.hidden = true;
+
+    const hashPage = parseInt((location.hash.match(/page=(\d+)/) || [])[1], 10);
+    if (hashPage > 1 && hashPage <= pages.length) flip.turnToPage(hashPage - 1);
+
+    flip.on('flip', e => { updateCounter(); prioritize(e.data); history.replaceState(null, '', `${location.pathname}?lang=${lang}#page=${e.data + 1}`); });
+    flip.on('changeOrientation', updateCounter);
+    updateCounter();
+
+    queue = pages.map((_, i) => i);
+    prioritize(flip.getCurrentPageIndex());
+  } catch (e) {
+    console.error(e);
+    if (token === loadToken) status.textContent = UI[l].err;
+  }
+}
+
+document.querySelectorAll('.langs button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.lang === lang) return;
+  history.replaceState(null, '', `${location.pathname}?lang=${b.dataset.lang}`);
+  load(b.dataset.lang);
+}));
+document.getElementById('prev').addEventListener('click', () => flip && flip.flipPrev());
+document.getElementById('next').addEventListener('click', () => flip && flip.flipNext());
+document.addEventListener('keydown', e => {
+  if (!flip) return;
+  if (e.key === 'ArrowLeft') flip.flipPrev();
+  if (e.key === 'ArrowRight') flip.flipNext();
+});
+document.getElementById('fs').addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.();
+});
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { fitBook(); flip && flip.update(); updateCounter(); }, 120); });
+
+load(pickLang());
+</script>
+</body>
+</html>
